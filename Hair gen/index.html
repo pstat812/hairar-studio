@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HairAR Studio</title>
+<style>
+  :root{
+    --bg:#0d0b10; --panel:#17141d; --panel2:#1f1b28; --border:#2c2738;
+    --accent:#c9a45c; --accent2:#e7c98a; --text:#f2eee6; --muted:#9b93a8;
+    --danger:#e05c5c; --ok:#5cc98a; --radius:16px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;}
+  header{display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid var(--border);}
+  .logo{font-size:20px; font-weight:700; letter-spacing:.5px;}
+  .logo span{color:var(--accent);}
+  .langs{display:flex; gap:6px;}
+  .langs button{background:var(--panel); color:var(--muted); border:1px solid var(--border);
+    border-radius:8px; padding:5px 10px; font-size:12px; cursor:pointer;}
+  .langs button.on{color:var(--bg); background:var(--accent); border-color:var(--accent); font-weight:700;}
+  .tabs{display:flex; gap:8px; padding:12px 18px 0;}
+  .tabs button{flex:1; padding:12px; font-size:15px; font-weight:600; cursor:pointer;
+    background:var(--panel); color:var(--muted); border:1px solid var(--border);
+    border-radius:var(--radius) var(--radius) 0 0; border-bottom:none;}
+  .tabs button.on{background:var(--panel2); color:var(--accent2);}
+  main{flex:1; padding:0 18px 24px; max-width:760px; width:100%; margin:0 auto;}
+  .panel{background:var(--panel2); border:1px solid var(--border); border-radius:0 0 var(--radius) var(--radius);
+    padding:16px; display:none;}
+  .panel.on{display:block;}
+  .stage{position:relative; width:100%; aspect-ratio:3/4; background:#000;
+    border-radius:var(--radius); overflow:hidden; display:flex; align-items:center; justify-content:center;}
+  .stage canvas,.stage img,.stage video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .stage .msg{position:absolute; inset:0; display:flex; flex-direction:column; gap:10px;
+    align-items:center; justify-content:center; text-align:center; padding:20px;
+    color:var(--muted); font-size:14px; background:rgba(13,11,16,.75); z-index:5;}
+  .spinner{width:34px; height:34px; border:3px solid var(--border); border-top-color:var(--accent);
+    border-radius:50%; animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  h3{margin:18px 0 10px; font-size:13px; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:1px;}
+  .swatches{display:flex; flex-wrap:wrap; gap:10px;}
+  .sw{width:42px; height:42px; border-radius:50%; cursor:pointer; border:3px solid transparent;
+    box-shadow:0 2px 6px rgba(0,0,0,.5);}
+  .sw.on{border-color:var(--accent2); transform:scale(1.12);}
+  .sw.none{background:repeating-linear-gradient(45deg,#333 0 6px,#222 6px 12px);
+    display:flex; align-items:center; justify-content:center; color:#aaa; font-size:18px;}
+  .sliderRow{display:flex; align-items:center; gap:12px; margin:10px 0;}
+  .sliderRow label{font-size:13px; color:var(--muted); width:90px; flex-shrink:0;}
+  input[type=range]{flex:1; accent-color:var(--accent);}
+  .btnRow{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
+  .btn{flex:1; min-width:120px; padding:13px 16px; border-radius:12px; font-size:15px; font-weight:700;
+    cursor:pointer; border:1px solid var(--border); background:var(--panel); color:var(--text);}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#a8843e); color:#181206; border:none;}
+  .btn.primary:disabled{opacity:.45; cursor:not-allowed;}
+  .btn.ghost{background:transparent;}
+  .styleGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(105px,1fr)); gap:10px;}
+  .styleCard{background:var(--panel); border:2px solid var(--border); border-radius:12px;
+    padding:12px 6px; text-align:center; cursor:pointer;}
+  .styleCard .ic{font-size:26px;}
+  .styleCard .nm{font-size:12px; margin-top:6px; color:var(--text);}
+  .styleCard.on{border-color:var(--accent); background:#2a2336;}
+  .note{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5;}
+  .keyBar{display:flex; gap:8px; margin-top:8px;}
+  .keyBar input{flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:11px 12px; font-size:13px;}
+  .err{color:var(--danger); font-size:13px; margin-top:8px; display:none; white-space:pre-wrap;}
+  .okMsg{color:var(--ok); font-size:13px; margin-top:8px; display:none;}
+  /* before/after compare */
+  .compare{position:relative; width:100%; aspect-ratio:3/4; border-radius:var(--radius);
+    overflow:hidden; display:none; margin-top:14px; background:#000;}
+  .compare img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;}
+  .compare .topImg{clip-path:inset(0 50% 0 0);}
+  .compare .divider{position:absolute; top:0; bottom:0; left:50%; width:3px; background:var(--accent2);
+    pointer-events:none; box-shadow:0 0 8px rgba(0,0,0,.8);}
+  .compare input{position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:ew-resize; margin:0;}
+  .tag{position:absolute; top:10px; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:700;
+    background:rgba(0,0,0,.6); color:#fff; pointer-events:none;}
+  .tag.l{left:10px;} .tag.r{right:10px;}
+  footer{text-align:center; font-size:11px; color:var(--muted); padding:10px 0 22px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">💇 Hair<span>AR</span> Studio</div>
+  <div class="langs">
+    <button data-lang="en">EN</button>
+    <button data-lang="zh-Hant" class="on">繁</button>
+    <button data-lang="zh-Hans">简</button>
+  </div>
+</header>
+
+<div class="tabs" style="max-width:760px;margin:0 auto;width:100%;">
+  <button id="tabLiveBtn" class="on" data-i18n="tabLive"></button>
+  <button id="tabAiBtn" data-i18n="tabAI"></button>
+</div>
+
+<main>
+  <!-- ===================== LIVE COLOR TAB ===================== -->
+  <section id="livePanel" class="panel on">
+    <div class="stage">
+      <video id="video" autoplay playsinline muted style="display:none;"></video>
+      <canvas id="liveCanvas"></canvas>
+      <div class="msg" id="liveMsg"><div class="spinner"></div><div data-i18n="loadingModel"></div></div>
+    </div>
+    <h3 data-i18n="colorTitle"></h3>
+    <div class="swatches" id="liveSwatches"></div>
+    <div style="margin-top:14px;">
+      <div class="sliderRow"><label data-i18n="strength"></label>
+        <input type="range" id="strength" min="0" max="100" value="75"></div>
+      <div class="sliderRow"><label data-i18n="brightness"></label>
+        <input type="range" id="brightness" min="40" max="260" value="110"></div>
+    </div>
+    <div class="btnRow">
+      <button class="btn primary" id="snapBtn" data-i18n="snapshot"></button>
+    </div>
+    <div class="note" data-i18n="liveNote"></div>
+  </section>
+
+  <!-- ===================== AI HAIRSTYLE TAB ===================== -->
+  <section id="aiPanel" class="panel">
+    <div class="stage" id="aiStage">
+      <canvas id="aiPreviewCanvas"></canvas>
+      <img id="aiPhoto" style="display:none;">
+      <div class="msg" id="aiMsg" style="display:none;"><div class="spinner"></div><div id="aiMsgText"></div></div>
+    </div>
+    <div class="btnRow">
+      <button class="btn" id="takePhotoBtn" data-i18n="takePhoto"></button>
+      <button class="btn ghost" id="uploadBtn" data-i18n="upload"></button>
+      <button class="btn ghost" id="retakeBtn" data-i18n="retake" style="display:none;"></button>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    </div>
+
+    <h3 data-i18n="styleTitle"></h3>
+    <div class="styleGrid" id="styleGrid"></div>
+
+    <h3 data-i18n="colorTitleAI"></h3>
+    <div class="swatches" id="aiSwatches"></div>
+
+    <h3 data-i18n="apiKeyTitle"></h3>
+    <div class="note" data-i18n="apiKeyDesc"></div>
+    <div class="keyBar">
+      <input type="password" id="apiKey" placeholder="AIza...">
+      <button class="btn" style="flex:0;" id="saveKeyBtn" data-i18n="save"></button>
+    </div>
+    <div class="okMsg" id="keySaved" data-i18n="keySaved"></div>
+
+    <div class="btnRow">
+      <button class="btn primary" id="genBtn" data-i18n="generate" disabled></button>
+    </div>
+    <div class="err" id="aiErr"></div>
+
+    <div class="compare" id="compare">
+      <img id="resultImg">
+      <img id="beforeImg" class="topImg">
+      <div class="divider" id="divider"></div>
+      <span class="tag l" data-i18n="before"></span>
+      <span class="tag r" data-i18n="after"></span>
+      <input type="range" id="compareSlider" min="0" max="100" value="50">
+    </div>
+    <div class="btnRow" id="resultBtns" style="display:none;">
+      <button class="btn primary" id="downloadBtn" data-i18n="download"></button>
+    </div>
+  </section>
+</main>
+<footer>HairAR Studio · Salon Virtual Try-On</footer>
+
+<script type="module">
+/* ============================================================
+   i18n
+============================================================ */
+const I18N = {
+  "en": {
+    tabLive:"🎨 Live Hair Color", tabAI:"✨ AI Hairstyle",
+    loadingModel:"Loading AI model & camera…", cameraError:"Camera unavailable. Please allow camera access and use HTTPS / localhost.",
+    colorTitle:"Hair Color", strength:"Intensity", brightness:"Brightness",
+    snapshot:"📸 Save Snapshot",
+    liveNote:"Real-time AI hair segmentation recolors only your hair, pixel by pixel. Move naturally — the color follows.",
+    takePhoto:"📸 Take Photo", upload:"🖼️ Upload", retake:"🔄 Retake",
+    styleTitle:"Choose Hairstyle", colorTitleAI:"Hair Color (optional)",
+    apiKeyTitle:"Gemini API Key", apiKeyDesc:"Photorealistic hairstyle generation uses Google Gemini. Get a free key at aistudio.google.com → paste it here (saved on this device only).",
+    save:"Save", keySaved:"✓ Key saved", generate:"✨ Generate Hairstyle",
+    generating:"AI is styling your hair… (5–15s)",
+    needPhotoStyle:"Take a photo and choose a hairstyle first.", needKey:"Please enter your Gemini API key first.",
+    before:"BEFORE", after:"AFTER", download:"⬇️ Download Result",
+    errGen:"Generation failed: ", keepColor:"Keep original"
+  },
+  "zh-Hant": {
+    tabLive:"🎨 即時染髮", tabAI:"✨ AI 換髮型",
+    loadingModel:"載入 AI 模型同鏡頭中…", cameraError:"無法開啟鏡頭。請允許鏡頭權限，並用 HTTPS 或 localhost 開啟。",
+    colorTitle:"髮色", strength:"染色濃度", brightness:"亮度",
+    snapshot:"📸 儲存截圖",
+    liveNote:"即時 AI 頭髮分割，逐 pixel 只染頭髮部分。自然咁郁，顏色會跟住你。",
+    takePhoto:"📸 影相", upload:"🖼️ 上載相片", retake:"🔄 重影",
+    styleTitle:"揀髮型", colorTitleAI:"髮色（可選）",
+    apiKeyTitle:"Gemini API Key", apiKeyDesc:"極度擬真換髮型用 Google Gemini 生成。去 aistudio.google.com 免費攞 key → 貼喺度（只儲存喺本機）。",
+    save:"儲存", keySaved:"✓ 已儲存", generate:"✨ 生成髮型",
+    generating:"AI 整緊你嘅髮型…（5–15秒）",
+    needPhotoStyle:"請先影相同揀髮型。", needKey:"請先輸入 Gemini API key。",
+    before:"之前", after:"之後", download:"⬇️ 下載效果圖",
+    errGen:"生成失敗：", keepColor:"保持原色"
+  },
+  "zh-Hans": {
+    tabLive:"🎨 实时染发", tabAI:"✨ AI 换发型",
+    loadingModel:"加载 AI 模型和摄像头中…", cameraError:"无法开启摄像头。请允许摄像头权限，并用 HTTPS 或 localhost 打开。",
+    colorTitle:"发色", strength:"染色浓度", brightness:"亮度",
+    snapshot:"📸 保存截图",
+    liveNote:"实时 AI 头发分割，逐像素只染头发部分。自然移动，颜色会跟着你。",
+    takePhoto:"📸 拍照", upload:"🖼️ 上传照片", retake:"🔄 重拍",
+    styleTitle:"选择发型", colorTitleAI:"发色（可选）",
+    apiKeyTitle:"Gemini API Key", apiKeyDesc:"超逼真换发型使用 Google Gemini 生成。到 aistudio.google.com 免费获取 key → 粘贴在这里（仅保存在本机）。",
+    save:"保存", keySaved:"✓ 已保存", generate:"✨ 生成发型",
+    generating:"AI 正在设计你的发型…（5–15秒）",
+    needPhotoStyle:"请先拍照并选择发型。", needKey:"请先输入 Gemini API key。",
+    before:"之前", after:"之后", download:"⬇️ 下载效果图",
+    errGen:"生成失败：", keepColor:"保持原色"
+  }
+};
+let lang = localStorage.getItem("hairar_lang") || "zh-Hant";
+const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
+function applyLang(){
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll(".langs button").forEach(b => b.classList.toggle("on", b.dataset.lang === lang));
+  renderStyles(); renderAiSwatches();
+}
+document.querySelectorAll(".langs button").forEach(b => b.onclick = () => {
+  lang = b.dataset.lang; localStorage.setItem("hairar_lang", lang); applyLang();
+});
+
+/* ============================================================
+   Data
+============================================================ */
+const LIVE_COLORS = ["#15100c","#3b2416","#5a3825","#7b4a2d","#a06a3a","#c68642","#d9a760",
+  "#e8c87a","#cfc4b4","#e5e5e5","#8c2f39","#c2185b","#e76aa0","#7b1fa2","#3949ab","#00838f"];
+
+const STYLES = [
+  {id:"buzz",   ic:"✂️", en:"Buzz Cut",        ht:"平頭",     hs:"平头",     p:"a very short buzz cut"},
+  {id:"crop",   ic:"💇", en:"Textured Crop",   ht:"短碎髮",   hs:"短碎发",   p:"a short textured crop haircut with a slight fringe"},
+  {id:"comma",  ic:"🇰🇷", en:"Korean Comma",    ht:"韓式逗號頭",hs:"韩式逗号头",p:"a Korean comma hairstyle with a soft parted fringe"},
+  {id:"slick",  ic:"🕴️", en:"Slick Back",      ht:"油頭",     hs:"油头",     p:"a slicked-back undercut hairstyle"},
+  {id:"perm",   ic:"🌀", en:"Korean Perm",     ht:"韓式燙髮", hs:"韩式烫发", p:"a Korean-style permed wavy hairstyle with volume"},
+  {id:"bob",    ic:"💁", en:"Bob",             ht:"波波頭",   hs:"波波头",   p:"a chin-length bob haircut"},
+  {id:"lstr",   ic:"👩", en:"Long Straight",   ht:"長直髮",   hs:"长直发",   p:"long sleek straight hair past the shoulders"},
+  {id:"wavy",   ic:"🌊", en:"Long Wavy",       ht:"大波浪",   hs:"大波浪",   p:"long voluminous wavy curled hair"},
+  {id:"wolf",   ic:"🐺", en:"Wolf Cut",        ht:"狼尾頭",   hs:"狼尾头",   p:"a trendy layered wolf cut hairstyle"},
+  {id:"hime",   ic:"⛩️", en:"Hime Cut",        ht:"公主切",   hs:"公主切",   p:"a Japanese hime cut with straight cheek-length side locks"},
+  {id:"afro",   ic:"🎤", en:"Afro",            ht:"爆炸頭",   hs:"爆炸头",   p:"a big rounded afro hairstyle"},
+  {id:"pony",   ic:"🎀", en:"High Ponytail",   ht:"高馬尾",   hs:"高马尾",   p:"a high ponytail hairstyle"}
+];
+const AI_COLORS = [
+  {id:"keep",  hex:null,      en:null, p:null},
+  {id:"black", hex:"#15100c", p:"natural black"},
+  {id:"dbrown",hex:"#3b2416", p:"dark brown"},
+  {id:"chest", hex:"#7b4a2d", p:"chestnut brown"},
+  {id:"caram", hex:"#c68642", p:"caramel"},
+  {id:"blond", hex:"#e8c87a", p:"golden blonde"},
+  {id:"plat",  hex:"#e9e2d0", p:"platinum blonde"},
+  {id:"ash",   hex:"#b8b8b8", p:"ash grey"},
+  {id:"wine",  hex:"#8c2f39", p:"wine red"},
+  {id:"pink",  hex:"#e76aa0", p:"rose pink"},
+  {id:"purp",  hex:"#9b6bd4", p:"lavender purple"},
+  {id:"blue",  hex:"#4a6fd4", p:"sapphire blue"}
+];
+const styleName = s => lang==="zh-Hant" ? s.ht : lang==="zh-Hans" ? s.hs : s.en;
+
+/* ============================================================
+   State
+============================================================ */
+let liveColor = hexToRgb(LIVE_COLORS[10]);
+let selStyle = null, selAiColor = AI_COLORS[0];
+let photoDataUrl = null, resultDataUrl = null;
+let activeTab = "live";
+
+/* ============================================================
+   UI builders
+============================================================ */
+const liveSw = document.getElementById("liveSwatches");
+LIVE_COLORS.forEach((hex,i) => {
+  const d = document.createElement("div");
+  d.className = "sw" + (i===10 ? " on" : ""); d.style.background = hex;
+  d.onclick = () => { liveColor = hexToRgb(hex);
+    liveSw.querySelectorAll(".sw").forEach(x=>x.classList.remove("on")); d.classList.add("on"); };
+  liveSw.appendChild(d);
+});
+
+function renderStyles(){
+  const g = document.getElementById("styleGrid"); g.innerHTML = "";
+  STYLES.forEach(s => {
+    const c = document.createElement("div");
+    c.className = "styleCard" + (selStyle===s ? " on" : "");
+    c.innerHTML = `<div class="ic">${s.ic}</div><div class="nm">${styleName(s)}</div>`;
+    c.onclick = () => { selStyle = s; renderStyles(); updateGenBtn(); };
+    g.appendChild(c);
+  });
+}
+function renderAiSwatches(){
+  const w = document.getElementById("aiSwatches"); w.innerHTML = "";
+  AI_COLORS.forEach(c => {
+    const d = document.createElement("div");
+    if (c.hex){ d.className = "sw" + (selAiColor===c ? " on" : ""); d.style.background = c.hex; }
+    else { d.className = "sw none" + (selAiColor===c ? " on" : ""); d.textContent = "Ø"; d.title = t("keepColor"); }
+    d.onclick = () => { selAiColor = c; renderAiSwatches(); };
+    w.appendChild(d);
+  });
+}
+
+/* ============================================================
+   Tabs
+============================================================ */
+const tabLiveBtn = document.getElementById("tabLiveBtn"), tabAiBtn = document.getElementById("tabAiBtn");
+function setTab(tb){
+  activeTab = tb;
+  tabLiveBtn.classList.toggle("on", tb==="live");
+  tabAiBtn.classList.toggle("on", tb==="ai");
+  document.getElementById("livePanel").classList.toggle("on", tb==="live");
+  document.getElementById("aiPanel").classList.toggle("on", tb==="ai");
+}
+tabLiveBtn.onclick = () => setTab("live");
+tabAiBtn.onclick = () => setTab("ai");
+
+/* ============================================================
+   Camera + MediaPipe hair segmentation (live recolor)
+============================================================ */
+const video = document.getElementById("video");
+const liveCanvas = document.getElementById("liveCanvas");
+const liveCtx = liveCanvas.getContext("2d");
+const procCanvas = document.createElement("canvas");
+const procCtx = procCanvas.getContext("2d", { willReadFrequently:true });
+const aiPrevCanvas = document.getElementById("aiPreviewCanvas");
+const aiPrevCtx = aiPrevCanvas.getContext("2d");
+let segmenter = null, lastTs = -1;
+
+async function init(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user", width:{ideal:960}, height:{ideal:1280} }, audio:false });
+    video.srcObject = stream;
+    await new Promise(r => video.onloadedmetadata = r);
+    await video.play();
+  } catch(e){
+    document.getElementById("liveMsg").innerHTML = `<div>⚠️</div><div>${t("cameraError")}</div>`;
+    return;
+  }
+  const PROC_W = 420;
+  procCanvas.width = PROC_W;
+  procCanvas.height = Math.round(PROC_W * video.videoHeight / video.videoWidth);
+  liveCanvas.width = procCanvas.width; liveCanvas.height = procCanvas.height;
+  aiPrevCanvas.width = procCanvas.width; aiPrevCanvas.height = procCanvas.height;
+
+  try {
+    const { FilesetResolver, ImageSegmenter } = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14");
+    const fileset = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+    segmenter = await ImageSegmenter.createFromOptions(fileset, {
+      baseOptions:{
+        modelAssetPath:"https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite",
+        delegate:"GPU"
+      },
+      runningMode:"VIDEO",
+      outputConfidenceMasks:true
+    });
+    document.getElementById("liveMsg").style.display = "none";
+  } catch(e){
+    document.getElementById("liveMsg").innerHTML = `<div>⚠️</div><div>AI model load failed: ${e.message}</div>`;
+  }
+  requestAnimationFrame(loop);
+}
+
+function loop(){
+  if (video.readyState >= 2){
+    procCtx.drawImage(video, 0, 0, procCanvas.width, procCanvas.height);
+    if (activeTab === "live" && segmenter){
+      let ts = performance.now();
+      if (ts <= lastTs) ts = lastTs + 1;
+      lastTs = ts;
+      segmenter.segmentForVideo(procCanvas, ts, res => {
+        const mask = res.confidenceMasks[0];
+        const conf = mask.getAsFloat32Array();
+        recolor(conf);
+        mask.close();
+      });
+    } else if (activeTab === "live"){
+      drawMirrored(liveCtx, procCanvas);
+    }
+    if (activeTab === "ai" && !photoDataUrl){
+      drawMirrored(aiPrevCtx, procCanvas);
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+function recolor(conf){
+  const w = procCanvas.width, h = procCanvas.height;
+  const img = procCtx.getImageData(0, 0, w, h);
+  const d = img.data;
+  const strength = document.getElementById("strength").value / 100;
+  const bright = document.getElementById("brightness").value / 100;
+  const [cr, cg, cb] = liveColor;
+  for (let i = 0, p = 0; i < conf.length; i++, p += 4){
+    const c = conf[i];
+    if (c < 0.08) continue;
+    const r = d[p], g = d[p+1], b = d[p+2];
+    let lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+    lum = Math.min(1, lum * bright * 2.0);
+    const tr = Math.min(255, cr * lum * 1.6);
+    const tg = Math.min(255, cg * lum * 1.6);
+    const tb = Math.min(255, cb * lum * 1.6);
+    const a = Math.min(1, c * 1.15) * strength;
+    d[p]   = r + (tr - r) * a;
+    d[p+1] = g + (tg - g) * a;
+    d[p+2] = b + (tb - b) * a;
+  }
+  procCtx.putImageData(img, 0, 0);
+  drawMirrored(liveCtx, procCanvas);
+}
+
+function drawMirrored(ctx, src){
+  ctx.save();
+  ctx.setTransform(-1, 0, 0, 1, ctx.canvas.width, 0);
+  ctx.drawImage(src, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.restore();
+}
+
+document.getElementById("snapBtn").onclick = () => {
+  const a = document.createElement("a");
+  a.download = "hairar-color.png";
+  a.href = liveCanvas.toDataURL("image/png");
+  a.click();
+};
+
+/* ============================================================
+   AI hairstyle (photo mode, Gemini image generation)
+============================================================ */
+const aiPhoto = document.getElementById("aiPhoto");
+const takeBtn = document.getElementById("takePhotoBtn"), retakeBtn = document.getElementById("retakeBtn");
+const uploadBtn = document.getElementById("uploadBtn"), fileInput = document.getElementById("fileInput");
+const genBtn = document.getElementById("genBtn"), aiErr = document.getElementById("aiErr");
+const compare = document.getElementById("compare");
+
+const keyInput = document.getElementById("apiKey");
+keyInput.value = localStorage.getItem("hairar_gemini_key") || "";
+document.getElementById("saveKeyBtn").onclick = () => {
+  localStorage.setItem("hairar_gemini_key", keyInput.value.trim());
+  const ok = document.getElementById("keySaved");
+  ok.style.display = "block"; setTimeout(()=> ok.style.display = "none", 2000);
+};
+
+function updateGenBtn(){ genBtn.disabled = !(photoDataUrl && selStyle); }
+
+function setPhoto(dataUrl){
+  photoDataUrl = dataUrl;
+  aiPhoto.src = dataUrl; aiPhoto.style.display = "block";
+  retakeBtn.style.display = ""; takeBtn.style.display = "none"; uploadBtn.style.display = "none";
+  compare.style.display = "none"; document.getElementById("resultBtns").style.display = "none";
+  updateGenBtn();
+}
+
+takeBtn.onclick = () => {
+  if (video.readyState < 2) return;
+  const c = document.createElement("canvas");
+  c.width = video.videoWidth; c.height = video.videoHeight;
+  const cx = c.getContext("2d");
+  cx.setTransform(-1, 0, 0, 1, c.width, 0);
+  cx.drawImage(video, 0, 0);
+  setPhoto(c.toDataURL("image/jpeg", 0.92));
+};
+retakeBtn.onclick = () => {
+  photoDataUrl = null; resultDataUrl = null;
+  aiPhoto.style.display = "none"; retakeBtn.style.display = "none";
+  takeBtn.style.display = ""; uploadBtn.style.display = "";
+  compare.style.display = "none"; document.getElementById("resultBtns").style.display = "none";
+  updateGenBtn();
+};
+uploadBtn.onclick = () => fileInput.click();
+fileInput.onchange = () => {
+  const f = fileInput.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const max = 1280, sc = Math.min(1, max / Math.max(im.width, im.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width*sc); c.height = Math.round(im.height*sc);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      setPhoto(c.toDataURL("image/jpeg", 0.92));
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+};
+
+genBtn.onclick = async () => {
+  aiErr.style.display = "none";
+  if (!photoDataUrl || !selStyle){ showErr(t("needPhotoStyle")); return; }
+  const key = (localStorage.getItem("hairar_gemini_key") || keyInput.value).trim();
+  if (!key){ showErr(t("needKey")); return; }
+
+  const msg = document.getElementById("aiMsg");
+  document.getElementById("aiMsgText").textContent = t("generating");
+  msg.style.display = "flex"; genBtn.disabled = true;
+
+  const colorClause = selAiColor.p ? ` Dye the hair ${selAiColor.p} color.` : " Keep the original hair color.";
+  const prompt = `Edit this photo: change the person's hairstyle to ${selStyle.p}.${colorClause} ` +
+    `Keep the face, facial features, skin tone, identity, expression, clothing, lighting and background exactly the same. ` +
+    `The result must be photorealistic with natural, detailed hair texture, like a professional salon photo.`;
+
+  try {
+    const b64 = photoDataUrl.split(",")[1];
+    const resp = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
+      {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          contents:[{ parts:[
+            { inlineData:{ mimeType:"image/jpeg", data:b64 } },
+            { text: prompt }
+          ]}]
+        })
+      });
+    if (!resp.ok){
+      const e = await resp.json().catch(()=>({}));
+      throw new Error(e.error?.message || ("HTTP " + resp.status));
+    }
+    const data = await resp.json();
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const imgPart = parts.find(p => p.inlineData?.data);
+    if (!imgPart) throw new Error(parts.find(p=>p.text)?.text || "No image returned");
+    resultDataUrl = "data:image/png;base64," + imgPart.inlineData.data;
+    showResult();
+  } catch(e){
+    showErr(t("errGen") + e.message);
+  } finally {
+    msg.style.display = "none"; genBtn.disabled = false; updateGenBtn();
+  }
+};
+
+function showErr(m){ aiErr.textContent = m; aiErr.style.display = "block"; }
+
+function showResult(){
+  document.getElementById("resultImg").src = resultDataUrl;
+  document.getElementById("beforeImg").src = photoDataUrl;
+  compare.style.display = "block";
+  document.getElementById("resultBtns").style.display = "flex";
+  const slider = document.getElementById("compareSlider");
+  slider.value = 50; updateCompare(50);
+  slider.oninput = () => updateCompare(slider.value);
+  compare.scrollIntoView({ behavior:"smooth", block:"center" });
+}
+function updateCompare(v){
+  document.getElementById("beforeImg").style.clipPath = `inset(0 ${100-v}% 0 0)`;
+  document.getElementById("divider").style.left = v + "%";
+}
+document.getElementById("downloadBtn").onclick = () => {
+  const a = document.createElement("a");
+  a.download = "hairar-style.png"; a.href = resultDataUrl; a.click();
+};
+
+/* ============================================================
+   utils + boot
+============================================================ */
+function hexToRgb(hex){
+  const n = parseInt(hex.slice(1), 16);
+  return [(n>>16)&255, (n>>8)&255, n&255];
+}
+applyLang();
+init();
+</script>
+</body>
+</html>
