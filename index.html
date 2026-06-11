@@ -99,8 +99,9 @@
 
 <div class="tabs" style="max-width:760px;margin:0 auto;width:100%;">
   <button id="tabRtBtn" class="on" data-i18n="tabRT"></button>
-  <button id="tabLiveBtn" data-i18n="tabLive"></button>
-  <button id="tabAiBtn" data-i18n="tabAI"></button>
+  <!-- temporarily hidden: live color + AI photo tabs -->
+  <button id="tabLiveBtn" data-i18n="tabLive" style="display:none;"></button>
+  <button id="tabAiBtn" data-i18n="tabAI" style="display:none;"></button>
 </div>
 
 <main>
@@ -224,6 +225,9 @@
   </section>
 </main>
 <footer>HairAR Studio · Salon Virtual Try-On</footer>
+<div style="position:fixed;right:10px;bottom:10px;z-index:99;font-size:11px;font-weight:700;
+  color:var(--accent2);background:rgba(13,11,16,.8);border:1px solid var(--border);
+  border-radius:8px;padding:3px 8px;pointer-events:none;">V2</div>
 
 <script type="module">
 /* ============================================================
