@@ -59,10 +59,14 @@
   .btn.ghost{background:transparent;}
   .styleGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(105px,1fr)); gap:10px;}
   .styleCard{background:var(--panel); border:2px solid var(--border); border-radius:12px;
-    padding:12px 6px; text-align:center; cursor:pointer;}
-  .styleCard .ic{font-size:26px;}
+    padding:6px; text-align:center; cursor:pointer; overflow:hidden;}
+  .styleCard img{width:100%; height:110px; object-fit:cover; border-radius:8px; display:block; background:#111;}
   .styleCard .nm{font-size:12px; margin-top:6px; color:var(--text);}
   .styleCard.on{border-color:var(--accent); background:#2a2336;}
+  .gToggle{display:flex; gap:8px; margin:4px 0 12px;}
+  .gToggle button{flex:1; padding:10px; border-radius:10px; background:var(--panel); color:var(--muted);
+    border:1px solid var(--border); font-weight:700; font-size:14px; cursor:pointer;}
+  .gToggle button.on{background:var(--accent); color:var(--bg); border-color:var(--accent);}
   .note{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5;}
   .keyBar{display:flex; gap:8px; margin-top:8px;}
   .keyBar input{flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text);
@@ -119,7 +123,20 @@
     </div>
 
     <h3 data-i18n="styleTitle"></h3>
+    <div class="gToggle">
+      <button id="rtGenF" data-i18n="genderF"></button>
+      <button id="rtGenM" data-i18n="genderM"></button>
+    </div>
     <div class="styleGrid" id="rtStyleGrid"></div>
+
+    <h3 data-i18n="rtRefTitle"></h3>
+    <div class="note" data-i18n="rtRefDesc"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+      <button class="btn" style="flex:0 0 auto;" id="rtRefBtn" data-i18n="rtRefUpload"></button>
+      <img id="rtRefThumb" style="display:none;width:72px;height:72px;object-fit:cover;border-radius:10px;border:2px solid var(--accent);">
+      <button class="btn ghost" style="flex:0 0 auto;display:none;" id="rtRefClearBtn" data-i18n="rtRefClear"></button>
+      <input type="file" id="rtRefInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+    </div>
 
     <h3 data-i18n="colorTitleAI"></h3>
     <div class="swatches" id="rtSwatches"></div>
@@ -171,6 +188,10 @@
     </div>
 
     <h3 data-i18n="styleTitle"></h3>
+    <div class="gToggle">
+      <button id="aiGenF" data-i18n="genderF"></button>
+      <button id="aiGenM" data-i18n="genderM"></button>
+    </div>
     <div class="styleGrid" id="styleGrid"></div>
 
     <h3 data-i18n="colorTitleAI"></h3>
@@ -218,6 +239,9 @@ const I18N = {
     rtKeyDesc:"Realtime AR hairstyle uses Decart Lucy 2.1 (live-stream diffusion AI). Get a key at platform.decart.ai (free trial credits) → paste here (saved on this device only).",
     rtNeedKey:"Please enter your Decart API key first.",
     rtNote:"This streams your camera to Decart's AI engine, which redraws every frame photorealistically in real time (~25fps, <40ms latency). Hairstyle follows your head as you move and turn. Requires good internet connection.",
+    rtRefTitle:"Hairstyle Reference Photo (optional)",
+    rtRefDesc:"Upload a photo of the exact hairstyle you want (e.g. a screenshot from Instagram / Pinterest). The AI will copy that hairstyle onto you in real time — much more accurate than preset styles. Uploading a reference clears the preset selection, and vice versa.",
+    rtRefUpload:"🖼️ Upload Reference", rtRefClear:"✖ Clear",
     tabLive:"🎨 Live Hair Color", tabAI:"✨ AI Hairstyle",
     loadingModel:"Loading AI model & camera…", cameraError:"Camera unavailable. Please allow camera access and use HTTPS / localhost.",
     colorTitle:"Hair Color", strength:"Intensity", brightness:"Brightness",
@@ -225,6 +249,7 @@ const I18N = {
     liveNote:"Real-time AI hair segmentation recolors only your hair, pixel by pixel. Move naturally — the color follows.",
     takePhoto:"📸 Take Photo", upload:"🖼️ Upload", retake:"🔄 Retake",
     styleTitle:"Choose Hairstyle", colorTitleAI:"Hair Color (optional)",
+    genderF:"👩 Women", genderM:"👨 Men",
     apiKeyTitle:"Gemini API Key", apiKeyDesc:"Photorealistic hairstyle generation uses Google Gemini. Get a free key at aistudio.google.com → paste it here (saved on this device only).",
     save:"Save", keySaved:"✓ Key saved", generate:"✨ Generate Hairstyle",
     generating:"AI is styling your hair… (5–15s)",
@@ -241,6 +266,9 @@ const I18N = {
     rtKeyDesc:"即時AR換髮型用 Decart Lucy 2.1（實時diffusion AI）。去 platform.decart.ai 攞key（有免費試用額度）→ 貼喺度（只儲存喺本機）。",
     rtNeedKey:"請先輸入 Decart API key。",
     rtNote:"你嘅鏡頭畫面會串流去Decart嘅AI引擎，每一格畫面即時photorealistic重繪（約25fps、延遲<40ms）。髮型會跟住你個頭郁同轉角度。需要良好網絡。",
+    rtRefTitle:"髮型參考相（可選）",
+    rtRefDesc:"上載你想要嘅髮型相（例如IG／小紅書screenshot），AI會即時將嗰個髮型搬到你頭上，比預設款式更準確。上載參考相會取消預設款式選擇，反之亦然。",
+    rtRefUpload:"🖼️ 上載參考相", rtRefClear:"✖ 清除",
     tabLive:"🎨 即時染髮", tabAI:"✨ AI 換髮型",
     loadingModel:"載入 AI 模型同鏡頭中…", cameraError:"無法開啟鏡頭。請允許鏡頭權限，並用 HTTPS 或 localhost 開啟。",
     colorTitle:"髮色", strength:"染色濃度", brightness:"亮度",
@@ -248,6 +276,7 @@ const I18N = {
     liveNote:"即時 AI 頭髮分割，逐 pixel 只染頭髮部分。自然咁郁，顏色會跟住你。",
     takePhoto:"📸 影相", upload:"🖼️ 上載相片", retake:"🔄 重影",
     styleTitle:"揀髮型", colorTitleAI:"髮色（可選）",
+    genderF:"👩 女士髮型", genderM:"👨 男士髮型",
     apiKeyTitle:"Gemini API Key", apiKeyDesc:"極度擬真換髮型用 Google Gemini 生成。去 aistudio.google.com 免費攞 key → 貼喺度（只儲存喺本機）。",
     save:"儲存", keySaved:"✓ 已儲存", generate:"✨ 生成髮型",
     generating:"AI 整緊你嘅髮型…（5–15秒）",
@@ -264,6 +293,9 @@ const I18N = {
     rtKeyDesc:"实时AR换发型使用 Decart Lucy 2.1（实时diffusion AI）。到 platform.decart.ai 获取key（有免费试用额度）→ 粘贴在这里（仅保存在本机）。",
     rtNeedKey:"请先输入 Decart API key。",
     rtNote:"你的摄像头画面会串流到Decart的AI引擎，每帧画面实时photorealistic重绘（约25fps、延迟<40ms）。发型会跟随你的头部移动和转动。需要良好网络。",
+    rtRefTitle:"发型参考照片（可选）",
+    rtRefDesc:"上传你想要的发型照片（例如IG／小红书截图），AI会实时把那个发型搬到你头上，比预设款式更准确。上传参考照片会取消预设款式选择，反之亦然。",
+    rtRefUpload:"🖼️ 上传参考照片", rtRefClear:"✖ 清除",
     tabLive:"🎨 实时染发", tabAI:"✨ AI 换发型",
     loadingModel:"加载 AI 模型和摄像头中…", cameraError:"无法开启摄像头。请允许摄像头权限，并用 HTTPS 或 localhost 打开。",
     colorTitle:"发色", strength:"染色浓度", brightness:"亮度",
@@ -271,6 +303,7 @@ const I18N = {
     liveNote:"实时 AI 头发分割，逐像素只染头发部分。自然移动，颜色会跟着你。",
     takePhoto:"📸 拍照", upload:"🖼️ 上传照片", retake:"🔄 重拍",
     styleTitle:"选择发型", colorTitleAI:"发色（可选）",
+    genderF:"👩 女士发型", genderM:"👨 男士发型",
     apiKeyTitle:"Gemini API Key", apiKeyDesc:"超逼真换发型使用 Google Gemini 生成。到 aistudio.google.com 免费获取 key → 粘贴在这里（仅保存在本机）。",
     save:"保存", keySaved:"✓ 已保存", generate:"✨ 生成发型",
     generating:"AI 正在设计你的发型…（5–15秒）",
@@ -296,20 +329,34 @@ document.querySelectorAll(".langs button").forEach(b => b.onclick = () => {
 const LIVE_COLORS = ["#15100c","#3b2416","#5a3825","#7b4a2d","#a06a3a","#c68642","#d9a760",
   "#e8c87a","#cfc4b4","#e5e5e5","#8c2f39","#c2185b","#e76aa0","#7b1fa2","#3949ab","#00838f"];
 
-const STYLES = [
-  {id:"buzz",   ic:"✂️", en:"Buzz Cut",        ht:"平頭",     hs:"平头",     p:"a very short buzz cut"},
-  {id:"crop",   ic:"💇", en:"Textured Crop",   ht:"短碎髮",   hs:"短碎发",   p:"a short textured crop haircut with a slight fringe"},
-  {id:"comma",  ic:"🇰🇷", en:"Korean Comma",    ht:"韓式逗號頭",hs:"韩式逗号头",p:"a Korean comma hairstyle with a soft parted fringe"},
-  {id:"slick",  ic:"🕴️", en:"Slick Back",      ht:"油頭",     hs:"油头",     p:"a slicked-back undercut hairstyle"},
-  {id:"perm",   ic:"🌀", en:"Korean Perm",     ht:"韓式燙髮", hs:"韩式烫发", p:"a Korean-style permed wavy hairstyle with volume"},
-  {id:"bob",    ic:"💁", en:"Bob",             ht:"波波頭",   hs:"波波头",   p:"a chin-length bob haircut"},
-  {id:"lstr",   ic:"👩", en:"Long Straight",   ht:"長直髮",   hs:"长直发",   p:"long sleek straight hair past the shoulders"},
-  {id:"wavy",   ic:"🌊", en:"Long Wavy",       ht:"大波浪",   hs:"大波浪",   p:"long voluminous wavy curled hair"},
-  {id:"wolf",   ic:"🐺", en:"Wolf Cut",        ht:"狼尾頭",   hs:"狼尾头",   p:"a trendy layered wolf cut hairstyle"},
-  {id:"hime",   ic:"⛩️", en:"Hime Cut",        ht:"公主切",   hs:"公主切",   p:"a Japanese hime cut with straight cheek-length side locks"},
-  {id:"afro",   ic:"🎤", en:"Afro",            ht:"爆炸頭",   hs:"爆炸头",   p:"a big rounded afro hairstyle"},
-  {id:"pony",   ic:"🎀", en:"High Ponytail",   ht:"高馬尾",   hs:"高马尾",   p:"a high ponytail hairstyle"}
+const U = "https://images.unsplash.com/";
+const imgThumb = u => u + "?q=80&w=260&auto=format&fit=crop";
+const imgRef   = u => u + "?q=80&w=900&auto=format&fit=crop";
+
+/* Trending styles 2024-26 (researched) — each with an Unsplash reference photo
+   that is passed to Decart Lucy as the hairstyle reference image. */
+const STYLES_M = [
+  {id:"fade",   en:"Low Taper Fade",    ht:"低位漸變Fade", hs:"低位渐变Fade", img:U+"photo-1629189784191-9afdcbcb0398", p:"a low taper fade haircut with short textured hair on top and cleanly faded sides"},
+  {id:"fringe", en:"Textured Fringe",   ht:"紋理瀏海",     hs:"纹理刘海",     img:U+"photo-1578390432942-d323db577792", p:"a textured fringe haircut with a choppy forward fringe and faded sides"},
+  {id:"crop",   en:"Textured Crop",     ht:"短碎髮",       hs:"短碎发",       img:U+"photo-1599834562135-b6fc90e642ca", p:"a short textured crop haircut"},
+  {id:"buzz",   en:"Buzz Cut",          ht:"平頭",         hs:"平头",         img:U+"photo-1672155408799-024306d7856d", p:"a very short buzz cut"},
+  {id:"slick",  en:"Slick Back",        ht:"油頭",         hs:"油头",         img:U+"photo-1562004760-aceed7bb0fe3", p:"a slicked-back undercut hairstyle"},
+  {id:"mullet", en:"Modern Mullet",     ht:"現代狼尾",     hs:"现代狼尾",     img:U+"photo-1604494747044-2e080876c5f1", p:"a modern mullet haircut, shorter at the front and sides with longer layered hair at the back of the neck (a haircut only — no animal features)"},
+  {id:"kperm",  en:"Korean Perm",       ht:"韓式燙髮",     hs:"韩式烫发",     img:U+"photo-1703098515408-2b317412afbb", p:"a Korean-style wavy permed hairstyle with soft volume"},
+  {id:"curtain",en:"Curtain Middle Part",ht:"中分窗簾頭",  hs:"中分窗帘头",   img:U+"photo-1541260894924-7ff059b93d54", p:"a middle-parted curtain hairstyle with a soft fringe falling on both sides"}
 ];
+const STYLES_F = [
+  {id:"bob",    en:"French Bob",        ht:"法式波波頭",   hs:"法式波波头",   img:U+"photo-1525614686090-7a3108e3758e", p:"a chin-length French bob haircut"},
+  {id:"bfly",   en:"Butterfly Cut",     ht:"蝴蝶剪",       hs:"蝴蝶剪",       img:U+"photo-1564742191034-961da6c0e088", p:"a butterfly cut: long hair with shorter face-framing layers and feathered airy volume"},
+  {id:"cbangs", en:"Curtain Bangs",     ht:"窗簾瀏海",     hs:"窗帘刘海",     img:U+"photo-1565906353471-db6555b67554", p:"long layered hair with curtain bangs parted in the middle framing the face"},
+  {id:"wolfb",  en:"Wolf / Shag",       ht:"狼尾Shag",     hs:"狼尾Shag",     img:U+"photo-1565090110341-a88f1e62f42b", p:"a shaggy layered wolf-cut hairstyle with choppy layers and wispy ends (a haircut name only — no animal ears or animal features)"},
+  {id:"lstr",   en:"Long Straight",     ht:"長直髮",       hs:"长直发",       img:U+"photo-1552699611-e2c208d5d9cf", p:"long sleek straight hair past the shoulders"},
+  {id:"lwav",   en:"Long Wavy",         ht:"大波浪",       hs:"大波浪",       img:U+"photo-1676666269510-f3214ed6ac5e", p:"long voluminous wavy curled hair"},
+  {id:"pixie",  en:"Pixie Cut",         ht:"精靈短髮",     hs:"精灵短发",     img:U+"photo-1580089285604-285b00cdc54a", p:"a short pixie haircut"},
+  {id:"hime",   en:"Hime Cut",          ht:"公主切",       hs:"公主切",       img:U+"photo-1589459724893-e858638fa4c8", p:"a Japanese hime cut with blunt bangs and straight cheek-length side locks"},
+  {id:"pony",   en:"High Ponytail",     ht:"高馬尾",       hs:"高马尾",       img:U+"photo-1613323885593-5fbcf35bf8ba", p:"a high ponytail hairstyle"}
+];
+const curStyles = () => selGender === "m" ? STYLES_M : STYLES_F;
 const AI_COLORS = [
   {id:"keep",  hex:null,      en:null, p:null},
   {id:"black", hex:"#15100c", p:"natural black"},
@@ -330,6 +377,7 @@ const styleName = s => lang==="zh-Hant" ? s.ht : lang==="zh-Hans" ? s.hs : s.en;
    State
 ============================================================ */
 let liveColor = hexToRgb(LIVE_COLORS[10]);
+let selGender = "f";
 let selStyle = null, selAiColor = AI_COLORS[0];
 let selRtStyle = null, selRtColor = AI_COLORS[0];
 let photoDataUrl = null, resultDataUrl = null;
@@ -347,15 +395,21 @@ LIVE_COLORS.forEach((hex,i) => {
   liveSw.appendChild(d);
 });
 
+function styleCardHTML(s){
+  return `<img src="${imgThumb(s.img)}" loading="lazy" alt="${s.en}"
+    onerror="this.style.display='none'"><div class="nm">${styleName(s)}</div>`;
+}
 function renderStyles(){
   const g = document.getElementById("styleGrid"); g.innerHTML = "";
-  STYLES.forEach(s => {
+  curStyles().forEach(s => {
     const c = document.createElement("div");
     c.className = "styleCard" + (selStyle===s ? " on" : "");
-    c.innerHTML = `<div class="ic">${s.ic}</div><div class="nm">${styleName(s)}</div>`;
+    c.innerHTML = styleCardHTML(s);
     c.onclick = () => { selStyle = s; renderStyles(); updateGenBtn(); };
     g.appendChild(c);
   });
+  document.getElementById("aiGenF").classList.toggle("on", selGender==="f");
+  document.getElementById("aiGenM").classList.toggle("on", selGender==="m");
 }
 function renderAiSwatches(){
   const w = document.getElementById("aiSwatches"); w.innerHTML = "";
@@ -369,14 +423,26 @@ function renderAiSwatches(){
 }
 function renderRtStyles(){
   const g = document.getElementById("rtStyleGrid"); g.innerHTML = "";
-  STYLES.forEach(s => {
+  curStyles().forEach(s => {
     const c = document.createElement("div");
     c.className = "styleCard" + (selRtStyle===s ? " on" : "");
-    c.innerHTML = `<div class="ic">${s.ic}</div><div class="nm">${styleName(s)}</div>`;
-    c.onclick = () => { selRtStyle = s; renderRtStyles(); rtSendPrompt(); };
+    c.innerHTML = styleCardHTML(s);
+    c.onclick = () => { selRtStyle = s; rtClearRef(true); renderRtStyles(); rtSendPrompt(); };
     g.appendChild(c);
   });
+  document.getElementById("rtGenF").classList.toggle("on", selGender==="f");
+  document.getElementById("rtGenM").classList.toggle("on", selGender==="m");
 }
+function setGender(g){
+  if (selGender === g) return;
+  selGender = g;
+  selStyle = null; selRtStyle = null;
+  renderStyles(); renderRtStyles(); updateGenBtn();
+}
+document.getElementById("rtGenF").onclick = () => setGender("f");
+document.getElementById("rtGenM").onclick = () => setGender("m");
+document.getElementById("aiGenF").onclick = () => setGender("f");
+document.getElementById("aiGenM").onclick = () => setGender("m");
 function renderRtSwatches(){
   const w = document.getElementById("rtSwatches"); w.innerHTML = "";
   AI_COLORS.forEach(c => {
@@ -651,7 +717,9 @@ const rtConnectBtn = document.getElementById("rtConnectBtn"), rtDisconnectBtn = 
 const rtKeyInput = document.getElementById("rtApiKey"), rtErrEl = document.getElementById("rtErr");
 const rtMsg = document.getElementById("rtMsg"), rtMsgText = document.getElementById("rtMsgText");
 const rtDot = document.getElementById("rtDot"), rtStatusEl = document.getElementById("rtStatus");
-let rtWs = null, rtPc = null, rtStream = null;
+let rtClient = null, rtStream = null, rtRefBlob = null, rtSdk = null;
+const rtRefBtn = document.getElementById("rtRefBtn"), rtRefInput = document.getElementById("rtRefInput");
+const rtRefThumb = document.getElementById("rtRefThumb"), rtRefClearBtn = document.getElementById("rtRefClearBtn");
 
 rtKeyInput.value = localStorage.getItem("hairar_decart_key") || "";
 document.getElementById("rtSaveKeyBtn").onclick = () => {
@@ -665,19 +733,70 @@ function rtSetStatus(key, color){
 }
 function rtShowErr(m){ rtErrEl.textContent = m; rtErrEl.style.display = "block"; }
 
-function rtBuildPrompt(){
-  if (!selRtStyle) return null;
+const RT_NEG = " Do not add any animal ears, animal features, masks, hats or objects. " +
+  "Keep the person's face, facial features, identity, expression, clothing and background exactly the same.";
+
+function rtBuildState(){
   const colorClause = selRtColor.p ? ` and dye the hair ${selRtColor.p} color` : "";
-  return `Change the person's hairstyle to ${selRtStyle.p}${colorClause}. ` +
-    `Keep the person's face, facial features, identity, expression, clothing and background exactly the same. ` +
-    `Photorealistic, natural detailed hair texture.`;
-}
-function rtSendPrompt(){
-  const p = rtBuildPrompt();
-  if (p && rtWs && rtWs.readyState === WebSocket.OPEN){
-    rtWs.send(JSON.stringify({ type:"prompt", prompt:p }));
+  if (rtRefBlob){
+    return {
+      prompt: `Replace the person's hairstyle with the exact hairstyle shown in the reference image${colorClause}. ` +
+        `Photorealistic, natural detailed hair texture.` + RT_NEG,
+      image: rtRefBlob, enhance: false
+    };
   }
+  if (selRtStyle){
+    /* preset style → pass its reference photo URL to Decart */
+    return {
+      prompt: `Replace the person's hairstyle with the hairstyle shown in the reference image — ` +
+        `${selRtStyle.p}${colorClause}. Only copy the hairstyle from the reference, nothing else. ` +
+        `Photorealistic, natural detailed hair texture.` + RT_NEG,
+      image: imgRef(selRtStyle.img), enhance: false
+    };
+  }
+  if (selRtColor.p){
+    return { prompt: `Dye the person's hair ${selRtColor.p} color. Photorealistic.` + RT_NEG, enhance: false };
+  }
+  return null;
 }
+
+async function rtSendPrompt(){
+  if (!rtClient) return;
+  const state = rtBuildState();
+  if (!state) return;
+  try {
+    await rtClient.set(state);
+  } catch(e){ rtShowErr(e.message || String(e)); }
+}
+
+/* --- hairstyle reference image --- */
+rtRefBtn.onclick = () => rtRefInput.click();
+rtRefInput.onchange = () => {
+  const f = rtRefInput.files[0]; if (!f) return;
+  const im = new Image();
+  im.onload = () => {
+    const max = 1024, sc = Math.min(1, max / Math.max(im.width, im.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(im.width*sc); c.height = Math.round(im.height*sc);
+    c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+    c.toBlob(b => {
+      rtRefBlob = b;
+      rtRefThumb.src = c.toDataURL("image/jpeg", 0.85);
+      rtRefThumb.style.display = ""; rtRefClearBtn.style.display = "";
+      selRtStyle = null; renderRtStyles();
+      rtSendPrompt();
+    }, "image/jpeg", 0.9);
+    URL.revokeObjectURL(im.src);
+  };
+  im.src = URL.createObjectURL(f);
+  rtRefInput.value = "";
+};
+function rtClearRef(silent){
+  rtRefBlob = null;
+  rtRefThumb.style.display = "none"; rtRefClearBtn.style.display = "none";
+  if (!silent) rtSendPrompt();
+}
+rtRefClearBtn.onclick = () => rtClearRef(false);
 
 rtConnectBtn.onclick = async () => {
   rtErrEl.style.display = "none";
@@ -688,56 +807,44 @@ rtConnectBtn.onclick = async () => {
   rtMsgText.textContent = t("rtConnecting"); rtMsg.style.display = "flex";
 
   try {
+    if (!rtSdk) rtSdk = await import("https://esm.sh/@decartai/sdk");
+    const { createDecartClient, models } = rtSdk;
+    const model = models.realtime("lucy-2.1");
+
     rtStream = await navigator.mediaDevices.getUserMedia({
       audio: false,
-      video: { facingMode:"user", width:{ideal:1280}, height:{ideal:704}, frameRate:{ideal:25} }
+      video: {
+        facingMode:"user",
+        width:{ ideal: model.width || 1280 },
+        height:{ ideal: model.height || 704 },
+        frameRate:{ ideal: model.fps || 25 }
+      }
     });
     rtLocal.srcObject = rtStream;
 
-    rtWs = new WebSocket("wss://api3.decart.ai/v1/stream?api_key=" + encodeURIComponent(key) + "&model=lucy-2.1");
-
-    rtWs.onopen = async () => {
-      rtPc = new RTCPeerConnection({ iceServers:[{ urls:"stun:stun.l.google.com:19302" }] });
-      rtPc.onicecandidate = e => {
-        if (e.candidate && rtWs && rtWs.readyState === WebSocket.OPEN)
-          rtWs.send(JSON.stringify({ type:"ice-candidate", candidate:e.candidate }));
-      };
-      rtPc.ontrack = e => {
-        rtRemote.srcObject = e.streams[0];
+    const client = createDecartClient({ apiKey: key });
+    rtClient = await client.realtime.connect(rtStream, {
+      model,
+      onRemoteStream: s => {
+        rtRemote.srcObject = s;
         rtMsg.style.display = "none";
         rtSetStatus("rtConnected", "#5cc98a");
         rtConnectBtn.style.display = "none"; rtDisconnectBtn.style.display = "";
         rtSendPrompt();
-      };
-      rtPc.onconnectionstatechange = () => {
-        if (["failed","closed","disconnected"].includes(rtPc.connectionState)) rtTeardown();
-      };
-      rtStream.getTracks().forEach(tr => rtPc.addTrack(tr, rtStream));
-      const offer = await rtPc.createOffer();
-      await rtPc.setLocalDescription(offer);
-      rtWs.send(JSON.stringify({ type:"offer", sdp:offer.sdp }));
-    };
-
-    rtWs.onmessage = async ev => {
-      let msg; try { msg = JSON.parse(ev.data); } catch { return; }
-      if (msg.type === "answer" && rtPc){
-        await rtPc.setRemoteDescription({ type:"answer", sdp:msg.sdp });
-      } else if (msg.type === "ice-candidate" && msg.candidate && rtPc){
-        try { await rtPc.addIceCandidate(msg.candidate); } catch(e){}
-      } else if (msg.type === "error"){
-        rtShowErr(msg.message || "Decart error");
+      },
+      initialState: {
+        prompt: { text: (rtBuildState() || {}).prompt || "Keep the video unchanged and photorealistic", enhance: false }
       }
-    };
-    rtWs.onerror = () => { rtShowErr("WebSocket error — check API key / network."); rtTeardown(); };
-    rtWs.onclose = () => rtTeardown();
+    });
+    rtClient.on("connectionChange", st => { if (st === "disconnected") rtTeardown(); });
+    rtClient.on("error", err => rtShowErr(err.message || String(err)));
   } catch(e){
-    rtShowErr(e.message); rtTeardown();
+    rtShowErr(e.message || String(e)); rtTeardown();
   }
 };
 
 function rtTeardown(){
-  if (rtPc){ try{ rtPc.close(); }catch(e){} rtPc = null; }
-  if (rtWs){ try{ rtWs.onclose = null; rtWs.close(); }catch(e){} rtWs = null; }
+  if (rtClient){ try{ rtClient.disconnect(); }catch(e){} rtClient = null; }
   if (rtStream){ rtStream.getTracks().forEach(tr => tr.stop()); rtStream = null; }
   rtRemote.srcObject = null; rtLocal.srcObject = null;
   rtConnectBtn.disabled = false;
