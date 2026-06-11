@@ -94,13 +94,49 @@
 </header>
 
 <div class="tabs" style="max-width:760px;margin:0 auto;width:100%;">
-  <button id="tabLiveBtn" class="on" data-i18n="tabLive"></button>
+  <button id="tabRtBtn" class="on" data-i18n="tabRT"></button>
+  <button id="tabLiveBtn" data-i18n="tabLive"></button>
   <button id="tabAiBtn" data-i18n="tabAI"></button>
 </div>
 
 <main>
+  <!-- ===================== REALTIME AR HAIRSTYLE TAB (Decart Lucy 2.1) ===================== -->
+  <section id="rtPanel" class="panel on">
+    <div class="stage" style="aspect-ratio:16/9;">
+      <video id="rtRemote" autoplay playsinline muted style="transform:scaleX(-1);"></video>
+      <video id="rtLocal" autoplay playsinline muted
+        style="left:auto;top:auto;right:10px;bottom:10px;width:28%;height:auto;aspect-ratio:16/9;
+        border-radius:10px;border:2px solid var(--border);transform:scaleX(-1);z-index:4;"></video>
+      <div class="msg" id="rtMsg"><div id="rtMsgText" data-i18n="rtIdle"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+      <div id="rtDot" style="width:10px;height:10px;border-radius:50%;background:#666;"></div>
+      <div id="rtStatus" style="font-size:13px;color:var(--muted);" data-i18n="rtIdle"></div>
+    </div>
+    <div class="btnRow">
+      <button class="btn primary" id="rtConnectBtn" data-i18n="rtConnect"></button>
+      <button class="btn" id="rtDisconnectBtn" data-i18n="rtDisconnect" style="display:none;"></button>
+    </div>
+
+    <h3 data-i18n="styleTitle"></h3>
+    <div class="styleGrid" id="rtStyleGrid"></div>
+
+    <h3 data-i18n="colorTitleAI"></h3>
+    <div class="swatches" id="rtSwatches"></div>
+
+    <h3 data-i18n="rtKeyTitle"></h3>
+    <div class="note" data-i18n="rtKeyDesc"></div>
+    <div class="keyBar">
+      <input type="password" id="rtApiKey" placeholder="Decart API key...">
+      <button class="btn" style="flex:0;" id="rtSaveKeyBtn" data-i18n="save"></button>
+    </div>
+    <div class="okMsg" id="rtKeySaved" data-i18n="keySaved"></div>
+    <div class="err" id="rtErr"></div>
+    <div class="note" data-i18n="rtNote"></div>
+  </section>
+
   <!-- ===================== LIVE COLOR TAB ===================== -->
-  <section id="livePanel" class="panel on">
+  <section id="livePanel" class="panel">
     <div class="stage">
       <video id="video" autoplay playsinline muted style="display:none;"></video>
       <canvas id="liveCanvas"></canvas>
@@ -174,6 +210,14 @@
 ============================================================ */
 const I18N = {
   "en": {
+    tabRT:"🪄 Live AR Hairstyle",
+    rtIdle:"Press Connect to start live AR. Camera + Decart API key required.",
+    rtConnecting:"Connecting to AI engine…", rtConnected:"LIVE — pick a hairstyle below",
+    rtDisconnected:"Disconnected", rtConnect:"▶️ Connect Live AR", rtDisconnect:"⏹ Stop",
+    rtKeyTitle:"Decart API Key",
+    rtKeyDesc:"Realtime AR hairstyle uses Decart Lucy 2.1 (live-stream diffusion AI). Get a key at platform.decart.ai (free trial credits) → paste here (saved on this device only).",
+    rtNeedKey:"Please enter your Decart API key first.",
+    rtNote:"This streams your camera to Decart's AI engine, which redraws every frame photorealistically in real time (~25fps, <40ms latency). Hairstyle follows your head as you move and turn. Requires good internet connection.",
     tabLive:"🎨 Live Hair Color", tabAI:"✨ AI Hairstyle",
     loadingModel:"Loading AI model & camera…", cameraError:"Camera unavailable. Please allow camera access and use HTTPS / localhost.",
     colorTitle:"Hair Color", strength:"Intensity", brightness:"Brightness",
@@ -189,6 +233,14 @@ const I18N = {
     errGen:"Generation failed: ", keepColor:"Keep original"
   },
   "zh-Hant": {
+    tabRT:"🪄 Live AR 換髮型",
+    rtIdle:"撳「連接」開始 Live AR。需要鏡頭 + Decart API key。",
+    rtConnecting:"連接緊 AI 引擎…", rtConnected:"LIVE — 喺下面揀髮型",
+    rtDisconnected:"已斷開", rtConnect:"▶️ 連接 Live AR", rtDisconnect:"⏹ 停止",
+    rtKeyTitle:"Decart API Key",
+    rtKeyDesc:"即時AR換髮型用 Decart Lucy 2.1（實時diffusion AI）。去 platform.decart.ai 攞key（有免費試用額度）→ 貼喺度（只儲存喺本機）。",
+    rtNeedKey:"請先輸入 Decart API key。",
+    rtNote:"你嘅鏡頭畫面會串流去Decart嘅AI引擎，每一格畫面即時photorealistic重繪（約25fps、延遲<40ms）。髮型會跟住你個頭郁同轉角度。需要良好網絡。",
     tabLive:"🎨 即時染髮", tabAI:"✨ AI 換髮型",
     loadingModel:"載入 AI 模型同鏡頭中…", cameraError:"無法開啟鏡頭。請允許鏡頭權限，並用 HTTPS 或 localhost 開啟。",
     colorTitle:"髮色", strength:"染色濃度", brightness:"亮度",
@@ -204,6 +256,14 @@ const I18N = {
     errGen:"生成失敗：", keepColor:"保持原色"
   },
   "zh-Hans": {
+    tabRT:"🪄 Live AR 换发型",
+    rtIdle:"按「连接」开始 Live AR。需要摄像头 + Decart API key。",
+    rtConnecting:"正在连接 AI 引擎…", rtConnected:"LIVE — 在下面选择发型",
+    rtDisconnected:"已断开", rtConnect:"▶️ 连接 Live AR", rtDisconnect:"⏹ 停止",
+    rtKeyTitle:"Decart API Key",
+    rtKeyDesc:"实时AR换发型使用 Decart Lucy 2.1（实时diffusion AI）。到 platform.decart.ai 获取key（有免费试用额度）→ 粘贴在这里（仅保存在本机）。",
+    rtNeedKey:"请先输入 Decart API key。",
+    rtNote:"你的摄像头画面会串流到Decart的AI引擎，每帧画面实时photorealistic重绘（约25fps、延迟<40ms）。发型会跟随你的头部移动和转动。需要良好网络。",
     tabLive:"🎨 实时染发", tabAI:"✨ AI 换发型",
     loadingModel:"加载 AI 模型和摄像头中…", cameraError:"无法开启摄像头。请允许摄像头权限，并用 HTTPS 或 localhost 打开。",
     colorTitle:"发色", strength:"染色浓度", brightness:"亮度",
@@ -224,7 +284,7 @@ const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
 function applyLang(){
   document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
   document.querySelectorAll(".langs button").forEach(b => b.classList.toggle("on", b.dataset.lang === lang));
-  renderStyles(); renderAiSwatches();
+  renderStyles(); renderAiSwatches(); renderRtStyles(); renderRtSwatches();
 }
 document.querySelectorAll(".langs button").forEach(b => b.onclick = () => {
   lang = b.dataset.lang; localStorage.setItem("hairar_lang", lang); applyLang();
@@ -271,8 +331,9 @@ const styleName = s => lang==="zh-Hant" ? s.ht : lang==="zh-Hans" ? s.hs : s.en;
 ============================================================ */
 let liveColor = hexToRgb(LIVE_COLORS[10]);
 let selStyle = null, selAiColor = AI_COLORS[0];
+let selRtStyle = null, selRtColor = AI_COLORS[0];
 let photoDataUrl = null, resultDataUrl = null;
-let activeTab = "live";
+let activeTab = "rt";
 
 /* ============================================================
    UI builders
@@ -306,18 +367,42 @@ function renderAiSwatches(){
     w.appendChild(d);
   });
 }
+function renderRtStyles(){
+  const g = document.getElementById("rtStyleGrid"); g.innerHTML = "";
+  STYLES.forEach(s => {
+    const c = document.createElement("div");
+    c.className = "styleCard" + (selRtStyle===s ? " on" : "");
+    c.innerHTML = `<div class="ic">${s.ic}</div><div class="nm">${styleName(s)}</div>`;
+    c.onclick = () => { selRtStyle = s; renderRtStyles(); rtSendPrompt(); };
+    g.appendChild(c);
+  });
+}
+function renderRtSwatches(){
+  const w = document.getElementById("rtSwatches"); w.innerHTML = "";
+  AI_COLORS.forEach(c => {
+    const d = document.createElement("div");
+    if (c.hex){ d.className = "sw" + (selRtColor===c ? " on" : ""); d.style.background = c.hex; }
+    else { d.className = "sw none" + (selRtColor===c ? " on" : ""); d.textContent = "Ø"; d.title = t("keepColor"); }
+    d.onclick = () => { selRtColor = c; renderRtSwatches(); rtSendPrompt(); };
+    w.appendChild(d);
+  });
+}
 
 /* ============================================================
    Tabs
 ============================================================ */
-const tabLiveBtn = document.getElementById("tabLiveBtn"), tabAiBtn = document.getElementById("tabAiBtn");
+const tabLiveBtn = document.getElementById("tabLiveBtn"), tabAiBtn = document.getElementById("tabAiBtn"),
+      tabRtBtn = document.getElementById("tabRtBtn");
 function setTab(tb){
   activeTab = tb;
+  tabRtBtn.classList.toggle("on", tb==="rt");
   tabLiveBtn.classList.toggle("on", tb==="live");
   tabAiBtn.classList.toggle("on", tb==="ai");
+  document.getElementById("rtPanel").classList.toggle("on", tb==="rt");
   document.getElementById("livePanel").classList.toggle("on", tb==="live");
   document.getElementById("aiPanel").classList.toggle("on", tb==="ai");
 }
+tabRtBtn.onclick = () => setTab("rt");
 tabLiveBtn.onclick = () => setTab("live");
 tabAiBtn.onclick = () => setTab("ai");
 
@@ -557,6 +642,111 @@ document.getElementById("downloadBtn").onclick = () => {
   const a = document.createElement("a");
   a.download = "hairar-style.png"; a.href = resultDataUrl; a.click();
 };
+
+/* ============================================================
+   Realtime AR hairstyle (Decart Lucy 2.1, WebSocket + WebRTC)
+============================================================ */
+const rtRemote = document.getElementById("rtRemote"), rtLocal = document.getElementById("rtLocal");
+const rtConnectBtn = document.getElementById("rtConnectBtn"), rtDisconnectBtn = document.getElementById("rtDisconnectBtn");
+const rtKeyInput = document.getElementById("rtApiKey"), rtErrEl = document.getElementById("rtErr");
+const rtMsg = document.getElementById("rtMsg"), rtMsgText = document.getElementById("rtMsgText");
+const rtDot = document.getElementById("rtDot"), rtStatusEl = document.getElementById("rtStatus");
+let rtWs = null, rtPc = null, rtStream = null;
+
+rtKeyInput.value = localStorage.getItem("hairar_decart_key") || "";
+document.getElementById("rtSaveKeyBtn").onclick = () => {
+  localStorage.setItem("hairar_decart_key", rtKeyInput.value.trim());
+  const ok = document.getElementById("rtKeySaved");
+  ok.style.display = "block"; setTimeout(()=> ok.style.display = "none", 2000);
+};
+
+function rtSetStatus(key, color){
+  rtStatusEl.textContent = t(key); rtDot.style.background = color;
+}
+function rtShowErr(m){ rtErrEl.textContent = m; rtErrEl.style.display = "block"; }
+
+function rtBuildPrompt(){
+  if (!selRtStyle) return null;
+  const colorClause = selRtColor.p ? ` and dye the hair ${selRtColor.p} color` : "";
+  return `Change the person's hairstyle to ${selRtStyle.p}${colorClause}. ` +
+    `Keep the person's face, facial features, identity, expression, clothing and background exactly the same. ` +
+    `Photorealistic, natural detailed hair texture.`;
+}
+function rtSendPrompt(){
+  const p = rtBuildPrompt();
+  if (p && rtWs && rtWs.readyState === WebSocket.OPEN){
+    rtWs.send(JSON.stringify({ type:"prompt", prompt:p }));
+  }
+}
+
+rtConnectBtn.onclick = async () => {
+  rtErrEl.style.display = "none";
+  const key = (localStorage.getItem("hairar_decart_key") || rtKeyInput.value).trim();
+  if (!key){ rtShowErr(t("rtNeedKey")); return; }
+  rtConnectBtn.disabled = true;
+  rtSetStatus("rtConnecting", "#e0b85c");
+  rtMsgText.textContent = t("rtConnecting"); rtMsg.style.display = "flex";
+
+  try {
+    rtStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode:"user", width:{ideal:1280}, height:{ideal:704}, frameRate:{ideal:25} }
+    });
+    rtLocal.srcObject = rtStream;
+
+    rtWs = new WebSocket("wss://api3.decart.ai/v1/stream?api_key=" + encodeURIComponent(key) + "&model=lucy-2.1");
+
+    rtWs.onopen = async () => {
+      rtPc = new RTCPeerConnection({ iceServers:[{ urls:"stun:stun.l.google.com:19302" }] });
+      rtPc.onicecandidate = e => {
+        if (e.candidate && rtWs && rtWs.readyState === WebSocket.OPEN)
+          rtWs.send(JSON.stringify({ type:"ice-candidate", candidate:e.candidate }));
+      };
+      rtPc.ontrack = e => {
+        rtRemote.srcObject = e.streams[0];
+        rtMsg.style.display = "none";
+        rtSetStatus("rtConnected", "#5cc98a");
+        rtConnectBtn.style.display = "none"; rtDisconnectBtn.style.display = "";
+        rtSendPrompt();
+      };
+      rtPc.onconnectionstatechange = () => {
+        if (["failed","closed","disconnected"].includes(rtPc.connectionState)) rtTeardown();
+      };
+      rtStream.getTracks().forEach(tr => rtPc.addTrack(tr, rtStream));
+      const offer = await rtPc.createOffer();
+      await rtPc.setLocalDescription(offer);
+      rtWs.send(JSON.stringify({ type:"offer", sdp:offer.sdp }));
+    };
+
+    rtWs.onmessage = async ev => {
+      let msg; try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg.type === "answer" && rtPc){
+        await rtPc.setRemoteDescription({ type:"answer", sdp:msg.sdp });
+      } else if (msg.type === "ice-candidate" && msg.candidate && rtPc){
+        try { await rtPc.addIceCandidate(msg.candidate); } catch(e){}
+      } else if (msg.type === "error"){
+        rtShowErr(msg.message || "Decart error");
+      }
+    };
+    rtWs.onerror = () => { rtShowErr("WebSocket error — check API key / network."); rtTeardown(); };
+    rtWs.onclose = () => rtTeardown();
+  } catch(e){
+    rtShowErr(e.message); rtTeardown();
+  }
+};
+
+function rtTeardown(){
+  if (rtPc){ try{ rtPc.close(); }catch(e){} rtPc = null; }
+  if (rtWs){ try{ rtWs.onclose = null; rtWs.close(); }catch(e){} rtWs = null; }
+  if (rtStream){ rtStream.getTracks().forEach(tr => tr.stop()); rtStream = null; }
+  rtRemote.srcObject = null; rtLocal.srcObject = null;
+  rtConnectBtn.disabled = false;
+  rtConnectBtn.style.display = ""; rtDisconnectBtn.style.display = "none";
+  rtSetStatus("rtDisconnected", "#666");
+  rtMsgText.textContent = t("rtIdle"); rtMsg.style.display = "flex";
+}
+rtDisconnectBtn.onclick = rtTeardown;
+window.addEventListener("beforeunload", rtTeardown);
 
 /* ============================================================
    utils + boot
