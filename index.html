@@ -239,8 +239,8 @@ const I18N = {
     rtKeyDesc:"Realtime AR hairstyle uses Decart Lucy 2.1 (live-stream diffusion AI). Get a key at platform.decart.ai (free trial credits) → paste here (saved on this device only).",
     rtNeedKey:"Please enter your Decart API key first.",
     rtNote:"This streams your camera to Decart's AI engine, which redraws every frame photorealistically in real time (~25fps, <40ms latency). Hairstyle follows your head as you move and turn. Requires good internet connection.",
-    rtRefTitle:"Hairstyle Reference Photo (optional)",
-    rtRefDesc:"Upload a photo of the exact hairstyle you want (e.g. a screenshot from Instagram / Pinterest). The AI will copy that hairstyle onto you in real time — much more accurate than preset styles. Uploading a reference clears the preset selection, and vice versa.",
+    rtRefTitle:"Character Photo — Transform Mode (Beta)",
+    rtRefDesc:"⚠️ Note: with current Decart tech, uploading a photo transforms your WHOLE appearance into that person (face included) — it cannot copy only the hair. For hair-only changes, use the preset styles above (the photos there are just a visual menu; only a precise text instruction is sent to the AI).",
     rtRefUpload:"🖼️ Upload Reference", rtRefClear:"✖ Clear",
     tabLive:"🎨 Live Hair Color", tabAI:"✨ AI Hairstyle",
     loadingModel:"Loading AI model & camera…", cameraError:"Camera unavailable. Please allow camera access and use HTTPS / localhost.",
@@ -266,8 +266,8 @@ const I18N = {
     rtKeyDesc:"即時AR換髮型用 Decart Lucy 2.1（實時diffusion AI）。去 platform.decart.ai 攞key（有免費試用額度）→ 貼喺度（只儲存喺本機）。",
     rtNeedKey:"請先輸入 Decart API key。",
     rtNote:"你嘅鏡頭畫面會串流去Decart嘅AI引擎，每一格畫面即時photorealistic重繪（約25fps、延遲<40ms）。髮型會跟住你個頭郁同轉角度。需要良好網絡。",
-    rtRefTitle:"髮型參考相（可選）",
-    rtRefDesc:"上載你想要嘅髮型相（例如IG／小紅書screenshot），AI會即時將嗰個髮型搬到你頭上，比預設款式更準確。上載參考相會取消預設款式選擇，反之亦然。",
+    rtRefTitle:"人物參考相 — 變身模式（Beta）",
+    rtRefDesc:"⚠️ 注意：以目前Decart技術，上載相片會將你成個人（連塊面）變做相中人，做唔到淨係抄髮型。想淨係換髮型，請用上面嘅預設款式（嗰啲相只係俾你睇款，實際只會send精確文字指令俾AI，唔會郁你塊面）。",
     rtRefUpload:"🖼️ 上載參考相", rtRefClear:"✖ 清除",
     tabLive:"🎨 即時染髮", tabAI:"✨ AI 換髮型",
     loadingModel:"載入 AI 模型同鏡頭中…", cameraError:"無法開啟鏡頭。請允許鏡頭權限，並用 HTTPS 或 localhost 開啟。",
@@ -293,8 +293,8 @@ const I18N = {
     rtKeyDesc:"实时AR换发型使用 Decart Lucy 2.1（实时diffusion AI）。到 platform.decart.ai 获取key（有免费试用额度）→ 粘贴在这里（仅保存在本机）。",
     rtNeedKey:"请先输入 Decart API key。",
     rtNote:"你的摄像头画面会串流到Decart的AI引擎，每帧画面实时photorealistic重绘（约25fps、延迟<40ms）。发型会跟随你的头部移动和转动。需要良好网络。",
-    rtRefTitle:"发型参考照片（可选）",
-    rtRefDesc:"上传你想要的发型照片（例如IG／小红书截图），AI会实时把那个发型搬到你头上，比预设款式更准确。上传参考照片会取消预设款式选择，反之亦然。",
+    rtRefTitle:"人物参考照片 — 变身模式（Beta）",
+    rtRefDesc:"⚠️ 注意：以目前Decart技术，上传照片会把你整个人（连脸）变成照片中的人，无法只复制发型。想只换发型，请用上面的预设款式（那些照片只是给你看款式，实际只会发送精确文字指令给AI，不会改你的脸）。",
     rtRefUpload:"🖼️ 上传参考照片", rtRefClear:"✖ 清除",
     tabLive:"🎨 实时染发", tabAI:"✨ AI 换发型",
     loadingModel:"加载 AI 模型和摄像头中…", cameraError:"无法开启摄像头。请允许摄像头权限，并用 HTTPS 或 localhost 打开。",
@@ -733,25 +733,27 @@ function rtSetStatus(key, color){
 }
 function rtShowErr(m){ rtErrEl.textContent = m; rtErrEl.style.display = "block"; }
 
-const RT_NEG = " Do not add any animal ears, animal features, masks, hats or objects. " +
-  "Keep the person's face, facial features, identity, expression, clothing and background exactly the same.";
+const RT_NEG = " Only change the hair — everything else must remain identical. " +
+  "Do not add any animal ears, animal features, masks, hats or objects. " +
+  "Keep the person's face, facial features, identity, skin, expression, clothing and background exactly the same.";
 
 function rtBuildState(){
   const colorClause = selRtColor.p ? ` and dye the hair ${selRtColor.p} color` : "";
   if (rtRefBlob){
+    /* transform mode: Lucy 2.1 character reference (whole-appearance change) */
     return {
-      prompt: `Replace the person's hairstyle with the exact hairstyle shown in the reference image${colorClause}. ` +
-        `Photorealistic, natural detailed hair texture.` + RT_NEG,
-      image: rtRefBlob, enhance: false
+      prompt: `Transform into the person in the reference image${colorClause}. Photorealistic.`,
+      image: rtRefBlob, enhance: true
     };
   }
   if (selRtStyle){
-    /* preset style → pass its reference photo URL to Decart */
+    /* preset style → text-only prompt (hair-only edit).
+       NOTE: Lucy 2.1 image reference = character transformation (it would swap
+       the whole face/identity), so preset photos are UI-only and NOT sent. */
     return {
-      prompt: `Replace the person's hairstyle with the hairstyle shown in the reference image — ` +
-        `${selRtStyle.p}${colorClause}. Only copy the hairstyle from the reference, nothing else. ` +
+      prompt: `Change only the person's hairstyle to ${selRtStyle.p}${colorClause}. ` +
         `Photorealistic, natural detailed hair texture.` + RT_NEG,
-      image: imgRef(selRtStyle.img), enhance: false
+      enhance: false
     };
   }
   if (selRtColor.p){
